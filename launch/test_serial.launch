@@ -8,7 +8,7 @@
     <node pkg="ros_mbed_serial" name="gen_sample_serial_topic" type="gen_sample_serial_topic.py" output="screen">
         <param name="float" value="1.5" />
         <param name="int" value="2" />
-        <param name="string" value="abc" />
+        <param name="string" value="aabb" />
         <param name="use_joy" value="$(arg use_joy)" />
     </node>
 

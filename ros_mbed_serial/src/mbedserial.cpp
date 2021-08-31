@@ -3,6 +3,8 @@
 
 #include "mbedserial.h"
 
+DigitalOut myled(LED1);
+
 /***********************init***********************/
 void _nullfunc() { ; };
 
@@ -13,7 +15,7 @@ Mbedserial::Mbedserial(BufferedSerial &pc) : rospc(pc)
     endmsg = '\n';
     floatarraysize = 0;
     intarraysize = 0;
-    chararraysize = 0;
+    stringarraysize = 0;
     recv_data_size = 0;
     for (int i = 0; i < 3; i++)
     {
@@ -38,12 +40,12 @@ void Mbedserial::read_data()
         else if (buff[recv_data_size - 1] == endmsg)
         {
             arraysize = *(int *)(&buff[1]);
-            //memcpy(&arraysize, &(buf_pub[1]), 4);
+            //memcpy(&arraysize, &(buff[1]), 4);
 
             switch (buff[0])
             {
             case 'f':
-                if (recv_data_size == arraysize * 4 + 6)
+                if (recv_data_size >= arraysize * 4 + 6)
                 {
                     floatarraysize = arraysize;
                     for (int i = 0; i < arraysize; i++)
@@ -55,7 +57,7 @@ void Mbedserial::read_data()
                 }
                 break;
             case 'i':
-                if (recv_data_size == arraysize * 4 + 6)
+                if (recv_data_size >= arraysize * 4 + 6)
                 {
                     intarraysize = arraysize;
                     for (int i = 0; i < arraysize; i++)
@@ -67,13 +69,13 @@ void Mbedserial::read_data()
                 }
                 break;
             case 'c':
-                if (recv_data_size == arraysize + 6)
+                if (recv_data_size >= arraysize + 6)
                 {
-                    chararraysize = arraysize;
-                    memcpy(&getchar[0], &buff[5], arraysize);
-                    pfunccb[2]();
+                    stringarraysize = arraysize;
+                    getstring = &buff[5];
+                    getstring = getstring.substr(0, arraysize);
                 }
-                break;
+                pfunccb[2]();
             }
             recv_data_size = 0;
         }
@@ -117,14 +119,15 @@ void Mbedserial::int_write(const int *array, int arraysize)
     rospc.write(inttochar, arraysize * 4 + 6);
 }
 
-void Mbedserial::char_write(const char *array, int arraysize)
+void Mbedserial::string_write(std::string str, int arraysize)
 {
-    delete[] chartochar;
-    chartochar = new char[arraysize + 6];
-    chartochar[0] = 'c';
-    *(int *)(&chartochar[1]) = arraysize;
+    delete[] stringtochar;
+    stringtochar = new char[arraysize + 6];
+    stringtochar[0] = 'c';
+    *(int *)(&stringtochar[1]) = arraysize;
     //memcpy(&chartochar[1], &datasize, 4);
-    memcpy(&chartochar[5], array, arraysize);
-    chartochar[arraysize + 5] = endmsg;
-    rospc.write(chartochar, arraysize + 6);
+    const char *array = str.c_str();
+    memcpy(&stringtochar[5], array, arraysize);
+    stringtochar[arraysize + 5] = endmsg;
+    rospc.write(stringtochar, arraysize + 6);
 }

@@ -1,0 +1,15 @@
+<launch>
+    <include file="$(find ros_mbed_serial)/launch/ros_mbed_serial.launch" />
+
+    <arg name="use_joy" default="false" />
+
+    <node pkg="joy" name="joy_node" type="joy_node" if="$(arg use_joy)" />
+
+    <node pkg="ros_mbed_serial" name="gen_sample_serial_topic" type="gen_sample_serial_topic.py" output="screen">
+        <param name="float" value="1.5" />
+        <param name="int" value="2" />
+        <param name="string" value="abc" />
+        <param name="use_joy" value="$(arg use_joy)" />
+    </node>
+
+</launch>

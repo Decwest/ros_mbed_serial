@@ -20,12 +20,12 @@ int main()
 
   while (1)
   {
-    Ms.read_data();
+    // Ms.read_data();
     myled = !myled;
-    // int size = 2;            // 配列サイズを取得
-    // int f[2] = {1, 3}; // データを取得
-    // // 送信
-    // Ms.int_write(f, size);
+    int size = 2;            // 配列サイズを取得
+    float f[2] = {1.0, 3.0}; // データを取得
+    // 送信
+    Ms.float_write(f, size);
     // 受信
     // string word = "abc";
     // // 送信

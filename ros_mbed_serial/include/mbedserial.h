@@ -14,6 +14,7 @@ class Mbedserial
 private:
 	char *msg_buf;
 	int bufsize;
+	char startmsg;
 	char endmsg;
 	char *floattochar;
 	char *inttochar;
@@ -38,7 +39,7 @@ public:
 	void read_data();
 	void float_write(const float *array, int arraysize);
 	void int_write(const int *array, int arraysize);
-	void string_write(std::string str, int arraysize);
+	void string_write(const std::string &str);
 	void float_attach(void (*pfunc)()) { pfunccb[0] = pfunc; };
 	void int_attach(void (*pfunc)()) { pfunccb[1] = pfunc; };
 	void string_attach(void (*pfunc)()) { pfunccb[2] = pfunc; };

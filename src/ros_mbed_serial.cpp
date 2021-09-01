@@ -34,6 +34,7 @@ int open_serial(const char *device_name)
 }
 
 int fd1 = 0;
+char startmsg = '\b';
 char endmsg = '\n';
 bool floatflag = false;
 bool intflag = false;
@@ -56,16 +57,17 @@ void float_callback(const std_msgs::Float32MultiArray &serial_msg)
     }
     delete[] floattochar;
     floatdatasize = serial_msg.data.size();
-    floattochar = new char[floatdatasize * 4 + 6];
-    floattochar[0] = 'f';
-    *(int *)(&floattochar[1]) = floatdatasize;
+    floattochar = new char[floatdatasize * 4 + 7];
+    floattochar[0] = startmsg;
+    floattochar[1] = 'f';
+    *(int *)(&floattochar[2]) = floatdatasize;
     //memcpy(&floattochar[1], &datasize, 4);
     for (int i = 0; i < floatdatasize; i++)
     {
-        *(float *)(&floattochar[i * 4 + 5]) = serial_msg.data[i];
+        *(float *)(&floattochar[i * 4 + 6]) = serial_msg.data[i];
         //memcpy(&floattochar[i * 4 + 5], &serial_msg.data[i], 4);
     }
-    floattochar[floatdatasize * 4 + 5] = endmsg;
+    floattochar[floatdatasize * 4 + 6] = endmsg;
 
     floatflag = true;
 }
@@ -79,16 +81,17 @@ void int_callback(const std_msgs::Int32MultiArray &serial_msg)
     }
     delete[] inttochar;
     intdatasize = serial_msg.data.size();
-    inttochar = new char[intdatasize * 4 + 6];
-    inttochar[0] = 'i';
-    *(int *)(&inttochar[1]) = intdatasize;
+    inttochar = new char[intdatasize * 4 + 7];
+    inttochar[0] = startmsg;
+    inttochar[1] = 'i';
+    *(int *)(&inttochar[2]) = intdatasize;
     //memcpy(&inttochar[1], &datasize, 4);
     for (int i = 0; i < intdatasize; i++)
     {
-        *(int *)(&inttochar[i * 4 + 5]) = serial_msg.data[i];
+        *(int *)(&inttochar[i * 4 + 6]) = serial_msg.data[i];
         //memcpy(&inttochar[i * 4 + 5], &serial_msg.data[i], 4);
     }
-    inttochar[intdatasize * 4 + 5] = endmsg;
+    inttochar[intdatasize * 4 + 6] = endmsg;
 
     intflag = true;
 }
@@ -102,13 +105,14 @@ void string_callback(const std_msgs::String &serial_msg)
     }
     delete[] chartochar;
     chardatasize = serial_msg.data.size();
-    chartochar = new char[chardatasize + 6];
-    chartochar[0] = 'c';
-    *(int *)(&chartochar[1]) = chardatasize;
+    chartochar = new char[chardatasize + 7];
+    chartochar[0] = startmsg;
+    chartochar[1] = 'c';
+    *(int *)(&chartochar[2]) = chardatasize;
     //memcpy(&chartochar[1], &datasize, 4);
     std::string str = serial_msg.data;
-    memcpy(&chartochar[5], str.c_str(), chardatasize);
-    chartochar[chardatasize + 5] = endmsg;
+    memcpy(&chartochar[6], str.c_str(), chardatasize);
+    chartochar[chardatasize + 6] = endmsg;
 
     charflag = true;
 }
@@ -169,32 +173,33 @@ int main(int argc, char **argv)
         int recv_data = read(fd1, &buf_pub[recv_data_size], sizeof(buf_pub));
         // using namespace std;
         // cout << recv_data << endl;
-        // for(int i=0; i < recv_data; i++){
-        //     cout << i << ": " << buf_pub[i] << endl;
-        // }
 
         if (recv_data > 0)
         {
             recv_data_size += recv_data;
+            // for (int i = 0; i < recv_data_size; i++)
+            // {
+            //     cout << i << ": " << buf_pub[i] << endl;
+            // }
             if (recv_data_size >= 256)
             {
                 recv_data_size = 0;
             }
             else if (buf_pub[recv_data_size - 1] == endmsg)
             {
-                arraysize = *(int *)(&buf_pub[1]);
+                arraysize = *(int *)(&buf_pub[2]);
                 //memcpy(&arraysize, &(buf_pub[1]), 4);
 
-                switch (buf_pub[0])
+                switch (buf_pub[1])
                 {
                 case 'f':
-                    if (recv_data_size == arraysize * 4 + 6)
+                    if (recv_data_size == arraysize * 4 + 7)
                     {
                         std_msgs::Float32MultiArray pub_float;
                         pub_float.data.resize(arraysize);
                         for (int i = 0; i < arraysize; i++)
                         {
-                            pub_float.data[i] = *(float *)(&buf_pub[i * 4 + 5]);
+                            pub_float.data[i] = *(float *)(&buf_pub[i * 4 + 6]);
                             //memcpy(&pub_float.data[i], &buf_pub[i * 4 + 5], 4);
                         }
                         serial_pub_f.publish(pub_float);
@@ -205,13 +210,13 @@ int main(int argc, char **argv)
                     }
                     break;
                 case 'i':
-                    if (recv_data_size == arraysize * 4 + 6)
+                    if (recv_data_size == arraysize * 4 + 7)
                     {
                         std_msgs::Int32MultiArray pub_int;
                         pub_int.data.resize(arraysize);
                         for (int i = 0; i < arraysize; i++)
                         {
-                            pub_int.data[i] = *(int *)(&buf_pub[i * 4 + 5]);
+                            pub_int.data[i] = *(int *)(&buf_pub[i * 4 + 6]);
                             //memcpy(&pub_int.data[i], &buf_pub[i * 4 + 5], 4);
                         }
                         serial_pub_i.publish(pub_int);
@@ -222,11 +227,11 @@ int main(int argc, char **argv)
                     }
                     break;
                 case 'c':
-                    if (recv_data_size == arraysize + 6)
+                    if (recv_data_size == arraysize + 7)
                     {
                         std_msgs::String pub_string;
-                        pub_string.data = &buf_pub[5];
-                        pub_string.data = pub_string.data.substr(0, buf_pub[1]);
+                        pub_string.data = &buf_pub[6];
+                        pub_string.data = pub_string.data.substr(0, arraysize);
                         serial_pub_c.publish(pub_string);
                     }
                     else
@@ -244,7 +249,7 @@ int main(int argc, char **argv)
         // publish
         if (floatflag)
         {
-            rec = write(fd1, floattochar, floatdatasize * 4 + 6);
+            rec = write(fd1, floattochar, floatdatasize * 4 + 7);
             if (rec < 0)
             {
                 ROS_ERROR_ONCE("Serial Fail: cound not write float");
@@ -253,7 +258,7 @@ int main(int argc, char **argv)
         }
         else if (intflag)
         {
-            rec = write(fd1, inttochar, intdatasize * 4 + 6);
+            rec = write(fd1, inttochar, intdatasize * 4 + 7);
             if (rec < 0)
             {
                 ROS_ERROR_ONCE("Serial Fail: cound not write int");
@@ -262,7 +267,7 @@ int main(int argc, char **argv)
         }
         else if (charflag)
         {
-            rec = write(fd1, chartochar, chardatasize + 6);
+            rec = write(fd1, chartochar, chardatasize + 7);
             if (rec < 0)
             {
                 ROS_ERROR_ONCE("Serial Fail: cound not write char");

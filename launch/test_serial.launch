@@ -1,7 +1,7 @@
 <launch>
     <include file="$(find ros_mbed_serial)/launch/ros_mbed_serial.launch" />
 
-    <arg name="use_joy" default="false" />
+    <arg name="use_joy" default="true" />
 
     <node pkg="joy" name="joy_node" type="joy_node" if="$(arg use_joy)" />
 

@@ -20,7 +20,6 @@ int main()
   while (1)
   {
     Ms.read_data();
-    myled = !myled;
     // int size = 2;            // 配列サイズを取得
     // float f[2] = {1.0, 3.0}; // データを取得
     // // 送信
@@ -28,8 +27,8 @@ int main()
     // 受信
     // string word = "aa";
     // // 送信
-    // Ms.string_write(word, word.size());
-    // wait_us(10000);
+    // Ms.string_write(word);
+    // wait_us(100000);
   }
 }
 
@@ -55,8 +54,8 @@ void CallBack_int()
 void CallBack_string()
 {
   // 受信
-  int size = Ms.stringarraysize; // 配列サイズを取得
+  // int size = Ms.stringarraysize; // 配列サイズを取得
   std::string s = Ms.getstring;  // データを取得
   // 送信
-  Ms.string_write(s, size);
+  Ms.string_write(s);
 }
